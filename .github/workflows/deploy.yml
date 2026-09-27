@@ -19,6 +19,8 @@ jobs:
         run: |
           rm -rf src/app/api
           rm -f src/proxy.ts
+          rm -f src/app/opengraph-image.tsx
+          grep -rl force-dynamic src/app | xargs -r sed -i "/force-dynamic/d"
           cat > next.config.ts <<"EOF"
           import type { NextConfig } from "next";
           const nextConfig: NextConfig = {
