@@ -7,9 +7,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-concurrency:
-  group: pages
-  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,27 +14,29 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - name: Patch for static export
+          node-version: 22
+      - name: patch
         run: |
-          rm -rf src/app/api
-          rm -f src/proxy.ts
-          printf 'import type { NextConfig } from "next";\n\nconst nextConfig: NextConfig = {\n  output: "export",\n  images: { unoptimized: true },\n  trailingSlash: true\n};\n\nexport default nextConfig;\n' > next.config.ts
-      - name: Install
-        run: npm install --no-audit --no-fund
-      - name: Build
-        run: npx next build
+          rm -rf src/app/api src/proxy.ts
+          cat > next.config.ts <<"EOF"
+          import type { NextConfig } from "next";
+          const nextConfig: NextConfig = {
+            output: "export",
+            images: { unoptimized: true },
+            trailingSlash: true,
+          };
+          export default nextConfig;
+          EOF
+      - run: npm install --no-audit --no-fund
+      - run: npx next build
         env:
-          NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_TELEMETRY_DISABLED: 1
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    environment: github-pages
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v4
