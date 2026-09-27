@@ -15,4 +15,4 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 XEOF
-for f in $(find src/app -name page.tsx); do case "$f" in *"["*) if ! grep -q generateStaticParams "$f"; then echo "export function generateStaticParams() { return []; }" >> "$f"; fi ;; esac; done
+for f in $(find src/app -name page.tsx | grep "\["); do sed -i "/^export.*generateStaticParams/,/^}/d" "$f"; echo "export function generateStaticParams() { return [{ slug: \"_\" }]; }" >> "$f"; done
