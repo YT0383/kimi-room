@@ -16,21 +16,7 @@ jobs:
         with:
           node-version: 22
       - name: patch
-        run: |
-          rm -rf src/app/api
-          rm -f src/proxy.ts
-          rm -f src/app/opengraph-image.tsx
-          grep -rl force-dynamic src/app | xargs -r sed -i "/force-dynamic/d"
-          cat > next.config.ts <<"EOF"
-          import type { NextConfig } from "next";
-          const nextConfig: NextConfig = {
-            output: "export",
-            images: { unoptimized: true },
-            trailingSlash: true,
-          };
-          export default nextConfig;
-          EOF
-          for f in $(find src/app -name page.tsx | grep "\[*\]"); do if ! grep -q generateStaticParams "$f"; then printf "\nexport function generateStaticParams() { return []; }\n" >> "$f"; fi; done
+        run: sh ci-patch.sh
       - run: npm install --no-audit --no-fund
       - run: npx next build
         env:
